@@ -10,14 +10,12 @@ namespace MudShip.LipSync.Editor
         public static VowelData Build(
             string audioPath,
             string transcriptPath,
-            string mfaDictPath,
-            string mfaAcousticModel,
-            string mfaExecutable,
-            string ffmpegExecutable,
+            string model,
             string assetSavePath)
         {
             var tempRoot = Path.Combine(Path.GetTempPath(), "ms_lipsync_" + Guid.NewGuid().ToString("N"));
-            var speakerDir = Path.Combine(tempRoot, "corpus", "speaker");
+            var corpusDir = Path.Combine(tempRoot, "corpus");
+            var speakerDir = Path.Combine(corpusDir, "speaker");
             var outputDir = Path.Combine(tempRoot, "output");
 
             Directory.CreateDirectory(speakerDir);
@@ -25,18 +23,19 @@ namespace MudShip.LipSync.Editor
 
             try
             {
-                var wavPath = AudioConverter.ToWav(audioPath, speakerDir, ffmpegExecutable);
-                var stem = Path.GetFileNameWithoutExtension(wavPath);
-                var hasTranscript = !string.IsNullOrEmpty(transcriptPath) && File.Exists(transcriptPath);
+                // Fixed ASCII stem avoids issues with spaces / non-ASCII source file names.
+                const string stem = "audio";
+                File.Copy(audioPath, Path.Combine(speakerDir, stem + Path.GetExtension(audioPath)), overwrite: true);
 
+                var hasTranscript = !string.IsNullOrEmpty(transcriptPath) && File.Exists(transcriptPath);
                 if (hasTranscript)
                 {
                     File.Copy(transcriptPath, Path.Combine(speakerDir, stem + ".txt"), overwrite: true);
-                    MFARunner.Align(Path.Combine(tempRoot, "corpus"), mfaDictPath, mfaAcousticModel, outputDir, mfaExecutable);
+                    MFARunner.Align(corpusDir, model, model, outputDir);
                 }
                 else
                 {
-                    MFARunner.Transcribe(Path.Combine(tempRoot, "corpus"), mfaDictPath, mfaAcousticModel, outputDir, mfaExecutable);
+                    MFARunner.Transcribe(corpusDir, model, model, outputDir);
                 }
 
                 var textGridPath = Path.Combine(outputDir, "speaker", stem + ".TextGrid");

@@ -5,19 +5,17 @@ namespace MudShip.LipSync.Editor
 {
     public static class MFARunner
     {
-        public static void Align(string corpusDir, string dictPath, string acousticModel,
-            string outputDir, string mfaExecutable = "mfa")
-            => Run(mfaExecutable,
-                $"align \"{corpusDir}\" \"{dictPath}\" \"{acousticModel}\" \"{outputDir}\" --clean --overwrite");
+        const string Exe = "mfa";
 
-        public static void Transcribe(string corpusDir, string dictPath, string acousticModel,
-            string outputDir, string mfaExecutable = "mfa")
-            => Run(mfaExecutable,
-                $"transcribe \"{corpusDir}\" \"{dictPath}\" \"{acousticModel}\" \"{outputDir}\" --clean");
+        public static void Align(string corpusDir, string dictionary, string acousticModel, string outputDir)
+            => Run($"align \"{corpusDir}\" \"{dictionary}\" \"{acousticModel}\" \"{outputDir}\" --clean --overwrite");
 
-        static void Run(string exe, string args)
+        public static void Transcribe(string corpusDir, string dictionary, string acousticModel, string outputDir)
+            => Run($"transcribe \"{corpusDir}\" \"{dictionary}\" \"{acousticModel}\" \"{outputDir}\" --clean");
+
+        static void Run(string args)
         {
-            var psi = new ProcessStartInfo(exe, args)
+            var psi = new ProcessStartInfo(Exe, args)
             {
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,

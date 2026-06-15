@@ -5,50 +5,31 @@ namespace MudShip.LipSync.Editor
 {
     public class MFAProcessorWindow : EditorWindow
     {
-        const string kMfaExe = "MS_LipSync.MfaExe";
-        const string kFfmpegExe = "MS_LipSync.FfmpegExe";
-        const string kDictPath = "MS_LipSync.DictPath";
-        const string kAcousticModel = "MS_LipSync.AcousticModel";
+        const string kModel = "MS_LipSync.Model";
 
         string _audioPath = "";
         string _transcriptPath = "";
         bool _useTranscript;
         string _savePath = "Assets/VowelData.asset";
-        string _mfaExe, _ffmpegExe, _dictPath, _acousticModel;
+        string _model;
 
         [MenuItem("Tools/MS LipSync/MFA Processor")]
         public static void Open() => GetWindow<MFAProcessorWindow>("MFA Processor");
 
-        void OnEnable()
-        {
-            _mfaExe = EditorPrefs.GetString(kMfaExe, "mfa");
-            _ffmpegExe = EditorPrefs.GetString(kFfmpegExe, "ffmpeg");
-            _dictPath = EditorPrefs.GetString(kDictPath, "");
-            _acousticModel = EditorPrefs.GetString(kAcousticModel, "english_mfa");
-        }
-
-        void OnDisable()
-        {
-            EditorPrefs.SetString(kMfaExe, _mfaExe);
-            EditorPrefs.SetString(kFfmpegExe, _ffmpegExe);
-            EditorPrefs.SetString(kDictPath, _dictPath);
-            EditorPrefs.SetString(kAcousticModel, _acousticModel);
-        }
+        void OnEnable() => _model = EditorPrefs.GetString(kModel, "japanese_mfa");
+        void OnDisable() => EditorPrefs.SetString(kModel, _model);
 
         void OnGUI()
         {
             GUILayout.Label("Audio", EditorStyles.boldLabel);
-            FileField("File", ref _audioPath, "wav,mp3");
+            FileField("File", ref _audioPath, "wav,mp3,flac,ogg,aiff");
             _useTranscript = EditorGUILayout.Toggle("Use Transcript", _useTranscript);
             if (_useTranscript)
                 FileField("Transcript", ref _transcriptPath, "txt,lab");
 
             GUILayout.Space(8);
             GUILayout.Label("MFA", EditorStyles.boldLabel);
-            _mfaExe = EditorGUILayout.TextField("Executable", _mfaExe);
-            FileField("Dictionary", ref _dictPath, "txt,dict");
-            _acousticModel = EditorGUILayout.TextField("Acoustic Model", _acousticModel);
-            _ffmpegExe = EditorGUILayout.TextField("ffmpeg", _ffmpegExe);
+            _model = EditorGUILayout.TextField("Model", _model);
 
             GUILayout.Space(8);
             GUILayout.Label("Output", EditorStyles.boldLabel);
@@ -90,10 +71,7 @@ namespace MudShip.LipSync.Editor
                 var result = VowelDataBuilder.Build(
                     _audioPath,
                     _useTranscript ? _transcriptPath : null,
-                    _dictPath,
-                    _acousticModel,
-                    _mfaExe,
-                    _ffmpegExe,
+                    _model,
                     _savePath);
 
                 EditorUtility.ClearProgressBar();
