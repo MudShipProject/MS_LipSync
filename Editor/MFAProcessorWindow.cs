@@ -6,18 +6,19 @@ namespace MudShip.LipSync.Editor
     public class MFAProcessorWindow : EditorWindow
     {
         const string kModel = "MS_LipSync.Model";
+        static readonly string[] kModels = { "japanese_mfa", "english_mfa", "english_us_arpa" };
 
         string _audioPath = "";
         string _transcriptPath = "";
         bool _useTranscript;
         string _savePath = "Assets/VowelData.asset";
-        string _model;
+        int _modelIndex;
 
         [MenuItem("Tools/MS LipSync/MFA Processor")]
         public static void Open() => GetWindow<MFAProcessorWindow>("MFA Processor");
 
-        void OnEnable() => _model = EditorPrefs.GetString(kModel, "japanese_mfa");
-        void OnDisable() => EditorPrefs.SetString(kModel, _model);
+        void OnEnable() => _modelIndex = Mathf.Max(0, System.Array.IndexOf(kModels, EditorPrefs.GetString(kModel, kModels[0])));
+        void OnDisable() => EditorPrefs.SetString(kModel, kModels[_modelIndex]);
 
         void OnGUI()
         {
@@ -29,7 +30,7 @@ namespace MudShip.LipSync.Editor
 
             GUILayout.Space(8);
             GUILayout.Label("MFA", EditorStyles.boldLabel);
-            _model = EditorGUILayout.TextField("Model", _model);
+            _modelIndex = EditorGUILayout.Popup("Model", _modelIndex, kModels);
 
             GUILayout.Space(8);
             GUILayout.Label("Output", EditorStyles.boldLabel);
@@ -71,7 +72,7 @@ namespace MudShip.LipSync.Editor
                 var result = VowelDataBuilder.Build(
                     _audioPath,
                     _useTranscript ? _transcriptPath : null,
-                    _model,
+                    kModels[_modelIndex],
                     _savePath);
 
                 EditorUtility.ClearProgressBar();
