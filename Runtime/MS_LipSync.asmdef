@@ -1,7 +1,9 @@
 {
     "name": "MS_LipSync",
     "rootNamespace": "MudShip.LipSync",
-    "references": [],
+    "references": [
+        "Unity.Timeline"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

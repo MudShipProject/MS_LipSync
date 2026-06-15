@@ -2,7 +2,9 @@
     "name": "MS_LipSync.Editor",
     "rootNamespace": "MudShip.LipSync.Editor",
     "references": [
-        "MS_LipSync"
+        "MS_LipSync",
+        "Unity.Timeline",
+        "Unity.Timeline.Editor"
     ],
     "includePlatforms": [
         "Editor"

@@ -11,6 +11,8 @@ namespace MudShip.LipSync.Editor
             string audioPath,
             string transcriptPath,
             string model,
+            string condaRoot,
+            string condaEnv,
             string assetSavePath)
         {
             var tempRoot = Path.Combine(Path.GetTempPath(), "ms_lipsync_" + Guid.NewGuid().ToString("N"));
@@ -31,11 +33,11 @@ namespace MudShip.LipSync.Editor
                 if (hasTranscript)
                 {
                     File.Copy(transcriptPath, Path.Combine(speakerDir, stem + ".txt"), overwrite: true);
-                    MFARunner.Align(corpusDir, model, model, outputDir);
+                    MFARunner.Align(corpusDir, model, model, outputDir, condaRoot, condaEnv);
                 }
                 else
                 {
-                    MFARunner.Transcribe(corpusDir, model, model, outputDir);
+                    MFARunner.Transcribe(corpusDir, model, model, outputDir, condaRoot, condaEnv);
                 }
 
                 var textGridPath = Path.Combine(outputDir, "speaker", stem + ".TextGrid");
@@ -48,6 +50,7 @@ namespace MudShip.LipSync.Editor
                 asset.totalDuration = frames.Length > 0
                     ? frames[frames.Length - 1].time + frames[frames.Length - 1].duration
                     : 0f;
+                asset.sourceClip = TryLoadProjectAudio(audioPath);
 
                 AssetDatabase.CreateAsset(asset, assetSavePath);
                 AssetDatabase.SaveAssets();
@@ -58,6 +61,15 @@ namespace MudShip.LipSync.Editor
                 if (Directory.Exists(tempRoot))
                     Directory.Delete(tempRoot, recursive: true);
             }
+        }
+
+        static AudioClip TryLoadProjectAudio(string absolutePath)
+        {
+            var dataPath = Application.dataPath.Replace('\\', '/');
+            var p = absolutePath.Replace('\\', '/');
+            if (!p.StartsWith(dataPath)) return null;
+            var rel = "Assets" + p.Substring(dataPath.Length);
+            return AssetDatabase.LoadAssetAtPath<AudioClip>(rel);
         }
     }
 }

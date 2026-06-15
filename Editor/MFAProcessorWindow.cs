@@ -6,6 +6,8 @@ namespace MudShip.LipSync.Editor
     public class MFAProcessorWindow : EditorWindow
     {
         const string kModel = "MS_LipSync.Model";
+        const string kCondaEnv = "MS_LipSync.CondaEnv";
+        const string kCondaRoot = "MS_LipSync.CondaRoot";
         static readonly string[] kModels = { "japanese_mfa", "english_mfa", "english_us_arpa" };
 
         string _audioPath = "";
@@ -13,12 +15,26 @@ namespace MudShip.LipSync.Editor
         bool _useTranscript;
         string _savePath = "Assets/VowelData.asset";
         int _modelIndex;
+        string _condaEnv;
+        string _condaRoot;
 
         [MenuItem("Tools/MS LipSync/MFA Processor")]
         public static void Open() => GetWindow<MFAProcessorWindow>("MFA Processor");
 
-        void OnEnable() => _modelIndex = Mathf.Max(0, System.Array.IndexOf(kModels, EditorPrefs.GetString(kModel, kModels[0])));
-        void OnDisable() => EditorPrefs.SetString(kModel, kModels[_modelIndex]);
+        void OnEnable()
+        {
+            _modelIndex = Mathf.Max(0, System.Array.IndexOf(kModels, EditorPrefs.GetString(kModel, kModels[0])));
+            _condaEnv = EditorPrefs.GetString(kCondaEnv, "aligner");
+            _condaRoot = EditorPrefs.GetString(kCondaRoot, "");
+            if (string.IsNullOrEmpty(_condaRoot)) _condaRoot = CondaLocator.Detect();
+        }
+
+        void OnDisable()
+        {
+            EditorPrefs.SetString(kModel, kModels[_modelIndex]);
+            EditorPrefs.SetString(kCondaEnv, _condaEnv);
+            EditorPrefs.SetString(kCondaRoot, _condaRoot);
+        }
 
         void OnGUI()
         {
@@ -29,7 +45,19 @@ namespace MudShip.LipSync.Editor
                 FileField("Transcript", ref _transcriptPath, "txt,lab");
 
             GUILayout.Space(8);
-            GUILayout.Label("MFA", EditorStyles.boldLabel);
+            GUILayout.Label("MFA (conda)", EditorStyles.boldLabel);
+            _condaEnv = EditorGUILayout.TextField("Conda Env", _condaEnv);
+            using (new GUILayout.HorizontalScope())
+            {
+                _condaRoot = EditorGUILayout.TextField("Conda Root", _condaRoot);
+                if (GUILayout.Button("...", GUILayout.Width(30)))
+                {
+                    var p = EditorUtility.OpenFolderPanel("Select conda install folder", _condaRoot, "");
+                    if (!string.IsNullOrEmpty(p)) _condaRoot = p;
+                }
+            }
+            if (string.IsNullOrEmpty(_condaRoot))
+                EditorGUILayout.HelpBox("conda not found. Install Miniforge/Miniconda, then set the install folder here.", MessageType.Warning);
             _modelIndex = EditorGUILayout.Popup("Model", _modelIndex, kModels);
 
             GUILayout.Space(8);
@@ -68,11 +96,13 @@ namespace MudShip.LipSync.Editor
         {
             try
             {
-                EditorUtility.DisplayProgressBar("MS LipSync", "Running MFA...", 0.5f);
+                EditorUtility.DisplayProgressBar("MS LipSync", "Running MFA... (Unity will be unresponsive)", 0.5f);
                 var result = VowelDataBuilder.Build(
                     _audioPath,
                     _useTranscript ? _transcriptPath : null,
                     kModels[_modelIndex],
+                    _condaRoot,
+                    _condaEnv,
                     _savePath);
 
                 EditorUtility.ClearProgressBar();

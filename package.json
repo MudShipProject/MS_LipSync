@@ -2,8 +2,10 @@
   "name": "com.mudshipproject.ms-lipsync",
   "displayName": "MS LipSync",
   "author": "mudship",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Vowel extraction from WAV/MP3 files using Montreal Forced Aligner (MFA)",
   "unity": "2022.3",
-  "dependencies": {}
+  "dependencies": {
+    "com.unity.timeline": "1.7.6"
+  }
 }

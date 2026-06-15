@@ -7,6 +7,7 @@ namespace MudShip.LipSync
     {
         public VowelFrame[] frames;
         public float totalDuration;
+        public AudioClip sourceClip;
 
         public Vowel GetVowelAt(float time)
         {
